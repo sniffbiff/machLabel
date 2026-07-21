@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kleinanzeigen Adress-Parser & Versand-Helfer</title>
+    <title>MachLabel - Kleinanzeigen Adress-Helfer</title>
     <style>
         :root {
             --primary: #2563eb;
-            --primary-hover: #1d4ed8;
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
             --text-color: #1e293b;
@@ -108,7 +107,7 @@
 
         button {
             flex: 1;
-            padding: 0.75rem 1rem;
+            padding: 0.85rem 1rem;
             border: none;
             border-radius: 8px;
             font-size: 1rem;
@@ -129,18 +128,14 @@
         }
         .btn-hermes:hover { background-color: #003a73; }
 
-        .btn-copy {
-            background-color: #e2e8f0;
-            color: #334155;
-            margin-top: 1rem;
-            width: 100%;
-        }
-        .btn-copy:hover { background-color: #cbd5e1; }
-
-        .hint {
+        .hint-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
             font-size: 0.85rem;
-            color: #64748b;
-            margin-top: 0.5rem;
+            color: #1e40af;
+            margin-top: 1rem;
         }
     </style>
 </head>
@@ -148,27 +143,27 @@
 
     <div class="container">
         <div class="card">
-            <h1>Kleinanzeigen Adress-Parser</h1>
-            <p class="subtitle">Kopiere die Nachricht mit der Adresse hier rein – der Rest füllt sich wie von Zauberhand aus.</p>
+            <h1>MachLabel</h1>
+            <p class="subtitle">Kopiere den Kleinanzeigen-Chat hier rein. Das Tool sortiert die Adresse sofort in die Felder.</p>
             
             <div class="input-group">
-                <label for="rawText">Chat-Text / Adresse hier einfügen:</label>
-                <textarea id="rawText" placeholder="z.B. Hallo, ich nehme es. Max Mustermann, Hauptstr. 12a, 75172 Pforzheim. Bitte per PayPal." oninput="parseAddress()"></textarea>
+                <label for="rawText">Chat-Text / Adresse:</label>
+                <textarea id="rawText" placeholder="z.B. Hallo, Max Mustermann, Hauptstr. 12a, 75172 Pforzheim..." oninput="parseAddress()"></textarea>
             </div>
         </div>
 
         <div class="card">
-            <h2>Extrahierte Daten</h2>
+            <h2>Kontrolle & Versand</h2>
             
             <div class="input-group">
-                <label for="name">Name des Empfängers</label>
-                <input type="text" id="name" placeholder="Vor- und Nachname">
+                <label for="name">Empfänger</label>
+                <input type="text" id="name" placeholder="Name">
             </div>
 
             <div class="grid-address input-group">
                 <div>
                     <label for="street">Straße</label>
-                    <input type="text" id="street" placeholder="Straßenname">
+                    <input type="text" id="street" placeholder="Straße">
                 </div>
                 <div>
                     <label for="housenumber">Hausnr.</label>
@@ -179,20 +174,21 @@
             <div class="grid-2 input-group">
                 <div>
                     <label for="zip">PLZ</label>
-                    <input type="text" id="zip" placeholder="5-stellig">
+                    <input type="text" id="zip" placeholder="PLZ">
                 </div>
                 <div>
                     <label for="city">Ort</label>
-                    <input type="text" id="city" placeholder="Stadt">
+                    <input type="text" id="city" placeholder="Ort">
                 </div>
             </div>
 
-            <button class="btn-copy" onclick="copyCompleteAddress()">Adresse komplett in Zwischenablage kopieren</button>
-            <div class="hint">Tipp: Perfekt, um die Daten schnell in bestehende Versandmasken einzufügen.</div>
-
             <div class="actions">
-                <button class="btn-dhl" onclick="openDHL()">Zu DHL Online Frankierung</button>
-                <button class="btn-hermes" onclick="openHermes()">Zu Hermes Online Paket</button>
+                <button class="btn-dhl" onclick="openDHL()">DHL öffnen & kopieren</button>
+                <button class="btn-hermes" onclick="openHermes()">Hermes öffnen & kopieren</button>
+            </div>
+
+            <div class="hint-box">
+                <strong>So funktioniert's:</strong> Klicke auf den Button. Die Adresse wird perfekt formatiert in den Speicher geladen und das Portal öffnet sich. Einfach im DHL-Suchfeld <strong>Strg + V</strong> drücken – fertig!
             </div>
         </div>
     </div>
@@ -201,11 +197,10 @@
         function parseAddress() {
             const text = document.getElementById('rawText').value;
 
-            // 1. PLZ (5 Ziffern am Stück) finden
+            // 1. PLZ finden
             const plzMatch = text.match(/\b\d{5}\b/);
             if (plzMatch) {
                 document.getElementById('zip').value = plzMatch[0];
-
                 const cityRegex = new RegExp(plzMatch[0] + `\\s+([A-Za-zÄÖÜäöüß\\s-]+)`, 'g');
                 const cityMatch = cityRegex.exec(text);
                 if (cityMatch && cityMatch[1]) {
@@ -217,7 +212,7 @@
                 document.getElementById('city').value = '';
             }
 
-            // 2. Straße und Hausnummer finden
+            // 2. Straße & Hausnummer finden
             const streetMatch = text.match(/([A-Za-zÄÖÜäöüß\.-]+(?:\sstr\.?|\sstraße|\sstrasse|\sallee|\sweg|\sring|\sufer)?)\s*([1-9]\d*[a-zA-Z]?)/i);
             if (streetMatch) {
                 document.getElementById('street').value = streetMatch[1].trim();
@@ -227,7 +222,7 @@
                 document.getElementById('housenumber').value = '';
             }
 
-            // 3. Name erkennen
+            // 3. Name finden
             const lines = text.split('\n');
             for (let line of lines) {
                 line = line.trim();
@@ -241,78 +236,62 @@
             }
         }
 
-        function getFullAddressText() {
-            const name = document.getElementById('name').value;
-            const street = document.getElementById('street').value;
-            const number = document.getElementById('housenumber').value;
-            const zip = document.getElementById('zip').value;
-            const city = document.getElementById('city').value;
-
-            return `${name}\n${street} ${number}\n${zip} ${city}`.trim();
-        }
-
-        // Universal-Kopierfunktion für Chrome (nutzt das klassische, absolut zuverlässige Verfahren)
-        function copyTextToClipboard(text, callback) {
+        // Zuverlässige Kopier-Funktion (nutzt den robusten Fallback für alle Browser)
+        centerCopy = function(textToCopy, callback) {
             const textarea = document.createElement("textarea");
-            textarea.value = text;
-            // Verstecken, damit die Seite nicht springt
+            textarea.value = textToCopy;
             textarea.style.position = "fixed";
             textarea.style.opacity = "0";
             document.body.appendChild(textarea);
             textarea.focus();
             textarea.select();
-
             try {
-                const successful = document.execCommand('copy');
+                document.execCommand('copy');
                 document.body.removeChild(textarea);
-                if (successful) {
-                    callback(true);
-                } else {
-                    callback(false);
-                }
+                callback(true);
             } catch (err) {
                 document.body.removeChild(textarea);
                 callback(false);
             }
         }
 
-        function copyCompleteAddress() {
-            const fullAddress = getFullAddressText();
-            if (!fullAddress) {
-                alert("Bitte erst Text eingeben.");
-                return;
-            }
-            copyTextToClipboard(fullAddress, (success) => {
-                if (success) {
-                    alert("Adresse wurde in die Zwischenablage kopiert!");
-                } else {
-                    alert("Fehler beim Kopieren.");
-                }
-            });
-        }
-
         function openDHL() {
-            const fullAddress = getFullAddressText();
-            if (!fullAddress) {
-                alert("Bitte erst einen Text mit Adresse eingeben.");
+            const name = document.getElementById('name').value;
+            const street = document.getElementById('street').value;
+            const num = document.getElementById('housenumber').value;
+            const zip = document.getElementById('zip').value;
+            const city = document.getElementById('city').value;
+
+            if (!name || !zip) {
+                alert("Bitte erst einen gültigen Text eingeben.");
                 return;
             }
-            
-            copyTextToClipboard(fullAddress, (success) => {
-                alert("✓ Adresse kopiert!\n\nDHL öffnet sich. Drücke im Adressfeld einfach STRG + V zum Einfügen.");
+
+            // Formatierung für die DHL-Suche optimieren (Name, Strasse Nr, PLZ Ort)
+            const cleanText = `${name}, ${street} ${num}, ${zip} ${city}`;
+
+            centerCopy(cleanText, (success) => {
+                alert("✓ Adresse kopiert!\n\nDHL öffnet sich jetzt. Drücke im Adressfeld einfach STRG + V.");
                 window.open('https://www.dhl.de/de/privatkunden/pakete-versenden/online-frankieren.html', '_blank');
             });
         }
 
         function openHermes() {
-            const fullAddress = getFullAddressText();
-            if (!fullAddress) {
-                alert("Bitte erst einen Text mit Adresse eingeben.");
+            const name = document.getElementById('name').value;
+            const street = document.getElementById('street').value;
+            const num = document.getElementById('housenumber').value;
+            const zip = document.getElementById('zip').value;
+            const city = document.getElementById('city').value;
+
+            if (!name || !zip) {
+                alert("Bitte erst einen gültigen Text eingeben.");
                 return;
             }
-            
-            copyTextToClipboard(fullAddress, (success) => {
-                alert("✓ Adresse kopiert!\n\nHermes öffnet sich. Drücke im Adressfeld einfach STRG + V zum Einfügen.");
+
+            const cleanText = `${name}, ${street} ${num}, ${zip} ${city}`;
+
+            centerCopy(cleanText, (success) => {
+                alert("✓ Adresse kopiert!\n\nHermes öffnet sich jetzt. Drücke im Adressfeld einfach STRG + V.");
                 window.open('https://www.myhermes.de/pakete-versenden/', '_blank');
             });
         }
