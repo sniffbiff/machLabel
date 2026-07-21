@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kleinanzeigen Adress-Parser & Versand-Helfer</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #cbd5e1;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem 1rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            color: #0f172a;
+        }
+
+        p.subtitle {
+            color: #64748b;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .grid-address {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 1rem;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        button {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-dhl {
+            background-color: #ffcc00;
+            color: #111;
+        }
+        .btn-dhl:hover { background-color: #e6b800; }
+
+        .btn-hermes {
+            background-color: #004b93;
+            color: #fff;
+        }
+        .btn-hermes:hover { background-color: #003a73; }
+
+        .btn-copy {
+            background-color: #e2e8f0;
+            color: #334155;
+            margin-top: 1rem;
+            width: 100%;
+        }
+        .btn-copy:hover { background-color: #cbd5e1; }
+
+        .hint {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="card">
+            <h1>Kleinanzeigen Adress-Parser</h1>
+            <p class="subtitle">Kopiere die Nachricht mit der Adresse hier rein – der Rest füllt sich wie von Zauberhand aus.</p>
+            
+            <div class="input-group">
+                <label for="rawText">Chat-Text / Adresse hier einfügen:</label>
+                <textarea id="rawText" placeholder="z.B. Hallo, ich nehme es. Max Mustermann, Hauptstr. 12a, 75172 Pforzheim. Bitte per PayPal." oninput="parseAddress()"></textarea>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Extrahierte Daten</h2>
+            
+            <div class="input-group">
+                <label for="name">Name des Empfängers</label>
+                <input type="text" id="name" placeholder="Vor- und Nachname">
+            </div>
+
+            <div class="grid-address input-group">
+                <div>
+                    <label for="street">Straße</label>
+                    <input type="text" id="street" placeholder="Straßenname">
+                </div>
+                <div>
+                    <label for="housenumber">Hausnr.</label>
+                    <input type="text" id="housenumber" placeholder="Nr.">
+                </div>
+            </div>
+
+            <div class="grid-2 input-group">
+                <div>
+                    <label for="zip">PLZ</label>
+                    <input type="text" id="zip" placeholder="5-stellig">
+                </div>
+                <div>
+                    <label for="city">Ort</label>
+                    <input type="text" id="city" placeholder="Stadt">
+                </div>
+            </div>
+
+            <button class="btn-copy" onclick="copyCompleteAddress()">Adresse komplett in Zwischenablage kopieren</button>
+            <div class="hint">Tipp: Perfekt, um die Daten schnell in bestehende Versandmasken einzufügen.</div>
+
+            <div class="actions">
+                <button class="btn-dhl" onclick="openDHL()">Zu DHL Online Frankierung</button>
+                <button class="btn-hermes" onclick="openHermes()">Zu Hermes Online Paket</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function parseAddress() {
+            const text = document.getElementById('rawText').value;
+
+            // 1. PLZ (5 Ziffern am Stück) finden
+            const plzMatch = text.match(/\b\d{5}\b/);
+            if (plzMatch) {
+                document.getElementById('zip').value = plzMatch[0];
+
+                // Versuche, den Ort hinter der PLZ zu finden
+                // Sucht nach der PLZ, gefolgt von Leerzeichen und einem Wort (Ort)
+                const cityRegex = new RegExp(plzMatch[0] + `\\s+([A-Za-zÄÖÜäöüß\\s-]+)`, 'g');
+                const cityMatch = cityRegex.exec(text);
+                if (cityMatch && cityMatch[1]) {
+                    // Nimm das erste gefundene Wort nach der PLZ als Ort (und bereinige Satzzeichen)
+                    let cleanCity = cityMatch[1].trim().split(/[\s,.]+/)[0];
+                    document.getElementById('city').value = cleanCity;
+                }
+            } else {
+                document.getElementById('zip').value = '';
+                document.getElementById('city').value = '';
+            }
+
+            // 2. Straße und Hausnummer finden (sucht nach typischen Endungen oder Straßennamen)
+            // Beispiel: Hauptstr. 12 oder Berliner Straße 45a
+            const streetMatch = text.match(/([A-Za-zÄÖÜäöüß\.-]+(?:\sstr\.?|\sstraße|\sstrasse|\sallee|\sweg|\sring|\sufer)?)\s*([1-9]\d*[a-zA-Z]?)/i);
+            if (streetMatch) {
+                document.getElementById('street').value = streetMatch[1].trim();
+                document.getElementById('housenumber').value = streetMatch[2].trim();
+            } else {
+                // Fallback: Einfach Felder leer lassen zur manuellen Korrektur
+                document.getElementById('street').value = '';
+                document.getElementById('housenumber').value = '';
+            }
+
+            // 3. Name erkennen (Sehr heuristisch: Versucht die ersten Wörter oder Zeilen zu nehmen, die keine Straße/PLZ sind)
+            // Hier nutzen wir einen simplen Ansatz: Nimm die ersten zwei Wörter, falls sie nicht nach Straße klingen
+            const lines = text.split('\n');
+            for (let line of lines) {
+                line = line.trim();
+                if (line.length > 3 && !line.match(/\d{5}/) && !line.toLowerCase().includes('hallo') && !line.toLowerCase().includes('paypal')) {
+                    // Wenn ein Komma drin ist, ist der Name oft vor dem ersten Komma
+                    let possibleName = line.split(',')[0].trim();
+                    if (possibleName.split(' ').length <= 3) {
+                        document.getElementById('name').value = possibleName;
+                        break;
+                    }
+                }
+            }
+        }
+
+        function getFullAddressText() {
+            const name = document.getElementById('name').value;
+            const street = document.getElementById('street').value;
+            const number = document.getElementById('housenumber').value;
+            const zip = document.getElementById('zip').value;
+            const city = document.getElementById('city').value;
+
+            return `${name}\n${street} ${number}\n${zip} ${city}`.trim();
+        }
+
+        function copyCompleteAddress() {
+            const fullAddress = getFullAddressText();
+            if (!fullAddress) {
+                alert("Bitte erst Text eingeben.");
+                return;
+            }
+            navigator.clipboard.writeText(fullAddress).then(() => {
+                alert("Adresse wurde in die Zwischenablage kopiert!");
+            });
+        }
+
+        function openDHL() {
+            // Kopiert die Daten zur Sicherheit in die Zwischenablage und öffnet DHL
+            copyCompleteAddress();
+            window.open('https://www.dhl.de/de/privatkunden/pakete-versenden/online-frankieren.html', '_blank');
+        }
+
+        function openHermes() {
+            // Kopiert die Daten zur Sicherheit in die Zwischenablage und öffnet Hermes
+            copyCompleteAddress();
+            window.open('https://www.myhermes.de/pakete-versenden/', '_blank');
+        }
+    </script>
+
+</body>
+</html>
