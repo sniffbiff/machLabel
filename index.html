@@ -270,15 +270,31 @@
         }
 
         function openDHL() {
-            // Kopiert die Daten zur Sicherheit in die Zwischenablage und öffnet DHL
-            copyCompleteAddress();
-            window.open('https://www.dhl.de/de/privatkunden/pakete-versenden/online-frankieren.html', '_blank');
+            const fullAddress = getFullAddressText();
+            if (!fullAddress) {
+                alert("Bitte erst einen Text mit Adresse eingeben.");
+                return;
+            }
+            
+            // In die Zwischenablage kopieren
+            navigator.clipboard.writeText(fullAddress).then(() => {
+                // Kurzer Hinweis für den Nutzer
+                alert("✓ Adresse kopiert!\n\nTabelle öffnet sich. Drücke bei DHL einfach STRG + V im Adressfeld, um alles einzufügen.");
+                window.open('https://www.dhl.de/de/privatkunden/pakete-versenden/online-frankieren.html', '_blank');
+            });
         }
 
         function openHermes() {
-            // Kopiert die Daten zur Sicherheit in die Zwischenablage und öffnet Hermes
-            copyCompleteAddress();
-            window.open('https://www.myhermes.de/pakete-versenden/', '_blank');
+            const fullAddress = getFullAddressText();
+            if (!fullAddress) {
+                alert("Bitte erst einen Text mit Adresse eingeben.");
+                return;
+            }
+            
+            navigator.clipboard.writeText(fullAddress).then(() => {
+                alert("✓ Adresse kopiert!\n\nTabelle öffnet sich. Drücke bei Hermes einfach STRG + V im Adressfeld, um alles einzufügen.");
+                window.open('https://www.myhermes.de/pakete-versenden/', '_blank');
+            });
         }
     </script>
 
